@@ -1,0 +1,33 @@
+menu "DANDER"
+
+    config DANDER_WIFI_SSID
+        string "WiFi SSID"
+        default "myssid"
+        help
+            SSID (network name) for the example to connect to.
+
+    config DANDER_WIFI_PASSWORD
+        string "WiFi Password"
+        default "mypassword"
+        help
+            WiFi password (WPA or WPA2) for the example to use.
+
+    config DANDER_SENSOR_ID
+        int "Sensor Id Range"
+        range 1 8
+        default 1
+        help
+            Ids of all active sensors.
+    
+    config DANDER_SERVER_IP
+        string "Server IP"
+        default "10.20.77.1"
+        help
+            IP of the Mac collecting UDP packets
+
+    config DANDER_SERVER_PORT
+        int "Server Port"
+        range 1024 65535
+        default 5005
+
+endmenu

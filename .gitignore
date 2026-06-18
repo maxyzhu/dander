@@ -1,0 +1,11 @@
+build/
+*.o
+*.a
+.DS_Store
+.vscode/
+.idea/
+compile_commands.json
+# firmware
+sdkconfig*
+# examples
+examples/
