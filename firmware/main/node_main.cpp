@@ -1,5 +1,6 @@
 #include "dander/pms7003m_parse.h"
 #include "dander/udp_packet.h"
+#include "ota_update.h"
 #include "wifi_sta.h"
 #include "time_sync.h"
 #include "udp_sender.h"
@@ -31,6 +32,8 @@
     // Connect to WiFi
     ESP_ERROR_CHECK(dander::wifi_sta_connect_blocking());
     ESP_LOGI(TAG, "WiFi connected");
+    // Check for OTA update, LOGI is included.
+    dander::ota_check_and_update();
     // Synchronize time
     ESP_ERROR_CHECK(dander::time_sync_blocking());
     ESP_LOGI(TAG, "Time synced, epoch_ms=%llu", (unsigned long long)dander::now_epoch_ms());

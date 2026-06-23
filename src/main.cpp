@@ -1,5 +1,7 @@
 #include "dander/udp_packet.h"
 #include "dander/pms7003m_parse.h"
+#include "storage/sqlite_store.h"
+#include <chrono>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -9,6 +11,14 @@
 #include <cerrno>
 
 int main() {
+    // Open database
+    dander::SqliteStore db;
+    if (!db.open("dander.db")) {
+        fprintf(stderr, "Failed to open database\n");
+        return 1;
+    }
+    printf("dander-ingest: database opened\n");
+
     // Create UDP socket
     int sock = ::socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) { perror("socket"); return 1; }
@@ -43,6 +53,12 @@ int main() {
         // Parse PMS payload
         dander::PMS7003MPacket pms;
         dander::parse_data(pkt.sensor_payload, &pms); // 24 bytes
+
+        // Insert reading into database
+        uint64_t recv_ms=std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+        ).count();
+        db.insert_reading(pkt.sensor_id, pkt.epoch_ms, recv_ms, pms);
 
         // Print PMS data
         printf("[sensor=%u ts=%llu] PM2.5=%u PM10=%u | counts: "
