@@ -59,7 +59,7 @@ Key technical contributions:
 | Layer | Technology |
 |---|---|
 | Sensor interface | C++ UART reader, custom PMS5003 packet parser (all 12 output fields) |
-| Data pipeline | C++ ring buffer, SQLite time-series storage |
+| Data pipeline | UDP ingest (ESP32 → Mac), SQLite (WAL mode) time-series storage |
 | Neural field training | Python, PyTorch, positional encoding |
 | Edge inference | ONNX Runtime C++ API |
 | Visualization | OpenCV heatmap rendering, floor plan overlay, event dashboard |
@@ -92,9 +92,14 @@ Sensor placement follows a coverage-plus-density strategy across a three-zone fl
 ## Timeline
 
 ### Week 1–2 — Infrastructure
-- C++ UART reader for PMS5003; parse and validate all 12 output fields including all 6 particle count bins
-- Deploy 8 nodes; define room coordinate system from floor plan
-- SQLite schema: `(sensor_id, x, y, timestamp, pm10, pm25, pm100, cnt_03, cnt_05, cnt_10, cnt_25, cnt_50, flags)`
+- C++ UART reader for PMS7003M on ESP32; parse and validate all 12 output fields including all 6 particle count bins
+- ESP32 firmware: WiFi station, SNTP time sync, UDP sender, OTA updates over double-slot partition
+- Deploy 8 nodes; define room coordinate system from floor plan (units: meters, mapped to pixels at render time)
+- SQLite schema, normalized into three tables:
+  - `sensors(sensor_id, …)` — per-node metadata
+  - `sensor_locations(sensor_id, x_m, y_m, valid_from, …)` — coordinates versioned over time so a node moving does not corrupt historical readings
+  - `readings(sensor_id, epoch_ms, recv_ms, pm1/pm2.5/pm10, count_0.3/0.5/1.0/2.5/5.0/10.0, …)` — measurements with dual timestamps: `epoch_ms` from the ESP32 (SNTP-disciplined) for true sample time, `recv_ms` from the Mac for clock-drift analysis and packet-loss diagnostics
+- WAL mode enabled so the ingest process and the OpenCV viewer process can read/write concurrently
 - Real-time floor plan visualization with per-node spectral readout (OpenCV)
 - Begin accumulating data; observe raw spatial and spectral patterns
 

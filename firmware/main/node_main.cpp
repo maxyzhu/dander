@@ -1,6 +1,6 @@
 #include "dander/pms7003m_parse.h"
 #include "dander/udp_packet.h"
-#include "ota_update.h"
+#include "remote_ota.h"
 #include "wifi_sta.h"
 #include "time_sync.h"
 #include "udp_sender.h"
@@ -9,6 +9,7 @@
 #include "esp_timer.h"
 #include "esp_err.h"
 #include "nvs_flash.h"
+#include "esp_ota_ops.h"
 #include <cstring>
 
  static const char* TAG = "dander";
@@ -32,14 +33,16 @@
     // Connect to WiFi
     ESP_ERROR_CHECK(dander::wifi_sta_connect_blocking());
     ESP_LOGI(TAG, "WiFi connected");
-    // Check for OTA update, LOGI is included.
-    dander::ota_check_and_update();
+    // Mark the current app as valid and cancel rollback
+    esp_ota_mark_app_valid_cancel_rollback();
     // Synchronize time
     ESP_ERROR_CHECK(dander::time_sync_blocking());
     ESP_LOGI(TAG, "Time synced, epoch_ms=%llu", (unsigned long long)dander::now_epoch_ms());
     // Initialize UDP sender
     ESP_ERROR_CHECK(dander::udp_sender_init());
     ESP_LOGI(TAG, "UDP sender initialized");
+    // Start remote OTA listener (UDP "OTA!" on CONFIG_DANDER_OTA_TRIGGER_PORT)
+    ESP_ERROR_CHECK(dander::remote_ota_start());
     // Initialize UART
     uart_config_t cfg = {}; // default init
     cfg.baud_rate  = 9600;

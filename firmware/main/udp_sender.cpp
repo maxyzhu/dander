@@ -24,7 +24,8 @@ esp_err_t udp_sender_init() {
     s_dest.sin_family = AF_INET;
     s_dest.sin_port = htons(CONFIG_DANDER_SERVER_PORT);
     s_dest.sin_addr.s_addr = inet_addr(CONFIG_DANDER_SERVER_IP);
-    ESP_LOGI(TAG, "Resolved destination address: %s:%d", CONFIG_DANDER_SERVER_IP, CONFIG_DANDER_SERVER_PORT);
+    ESP_LOGI(TAG, "Resolved destination address: %s:%d", 
+        CONFIG_DANDER_SERVER_IP, CONFIG_DANDER_SERVER_PORT);
     return ESP_OK;
 }
 

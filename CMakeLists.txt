@@ -12,12 +12,26 @@ add_compile_options(-Wall -Wextra -Wpedantic)
 
 
 find_package(SQLite3 REQUIRED)
+find_package(OpenCV REQUIRED)
 add_executable(dander-ingest 
     src/main.cpp
     src/storage/sqlite_store.cpp
 )
 target_include_directories(dander-ingest PRIVATE src)
-target_link_libraries(dander-ingest PRIVATE SQLite::SQLite3)
+target_link_libraries(dander-ingest PRIVATE SQLite3::SQLite3)
+
+add_executable(dander-viewer
+    src/viewer/main.cpp
+    src/storage/sqlite_reader.cpp
+)
+target_compile_definitions(dander-viewer PRIVATE
+    DANDER_PROJECT_ROOT="${CMAKE_SOURCE_DIR}"
+)
+target_include_directories(dander-viewer PRIVATE src)
+target_link_libraries(dander-viewer PRIVATE 
+    ${OpenCV_LIBS}
+    SQLite3::SQLite3
+)
 
 
 include_directories(include)

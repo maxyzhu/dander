@@ -29,5 +29,16 @@ menu "DANDER"
         int "Server Port"
         range 1024 65535
         default 5005
+    
+    config DANDER_OTA_TRIGGER_PORT
+        int "OTA trigger UDP port"
+        range 1024 65535
+        default 5006
+    
+    config DANDER_OTA_URL
+        string "OTA firmware URL"
+        default "http://10.20.77.1/dander_node.bin"
+        help
+            Full HTTP URL to firmware binary served by Mac.
 
 endmenu
