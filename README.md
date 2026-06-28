@@ -1,7 +1,14 @@
 # Dander
-<img src="assets/scene.jpeg" width="45%" style="display:inline-block">
-<img src="assets/output_sample1.jpeg" width="45%" style="display:inline-block">
-
+<table>
+  <tr>
+    <td><img src="assets/scene.jpeg" width="300"></td>
+    <td><img src="assets/output_sample1.jpeg" width="300"></td>
+  </tr>
+  <tr>
+    <td>正面</td>
+    <td>侧面</td>
+  </tr>
+</table>
 > I have two cats — one light, one dark. I sneeze every day. Vacuuming doesn't help much.
 >
 > The real culprit isn't the visible fur on the floor. It's Fel d 1, a protein secreted by cats that binds to microscopic dander particles (1–4 µm) and floats in the air for hours. Standard cleaning moves the problem around more than it solves it.
