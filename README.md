@@ -20,6 +20,105 @@ A third goal is **spatial optimization**: accumulating event histories to answer
 
 ---
 
+## Usage
+
+### Prerequisites
+
+Host side (macOS / Homebrew):
+```bash
+brew install cmake opencv sqlite onnxruntime nlohmann-json
+```
+Model training (Python, via uv):
+```bash
+uv venv && source .venv/bin/activate
+uv pip install torch onnxscript onnx onnxruntime pandas matplotlib jupyterlab
+```
+Firmware: ESP-IDF (only needed to flash the ESP32 nodes).
+
+### Build
+
+```bash
+cmake -S . -B build
+cmake --build build
+```
+Targets: `dander-ingest` (UDP → SQLite), `dander-viewer` (live per-sensor markers),
+`render_field` (reconstructed-field heatmap), plus unit tests (run with `ctest` from `build/`).
+
+### Collect data and view it
+
+`dander-ingest` and `dander-viewer` open `dander.db` relative to the working directory,
+so run them from `build/`:
+```bash
+cd build
+./dander-ingest      # binds udp/5005, writes incoming packets into readings
+./dander-viewer      # live floor-plan view, one marker per active sensor
+```
+
+### Add a sensor
+
+A node is one PMS7003M paired with one ESP32. Two steps:
+
+1. **Flash the firmware** with this node's identity (ESP-IDF `menuconfig` → `DANDER` menu):
+   ```bash
+   cd firmware
+   idf.py menuconfig
+   #   DANDER_SENSOR_ID    (1–8)   unique id for this node
+   #   DANDER_WIFI_SSID / _PASSWORD
+   #   DANDER_SERVER_IP    the Mac running dander-ingest (default 10.20.77.1)
+   #   DANDER_SERVER_PORT  (default 5005)
+   idf.py flash         # over USB. (idf.py monitor only works over the serial cable.)
+   ```
+   After the first flash, firmware updates can be pushed over the air (OTA) — no cable needed.
+
+2. **Register the node and its position** in the database. Coordinates are in meters;
+   origin = top-left of the floor plan, +x right, +y down:
+   ```bash
+   sqlite3 build/dander.db
+   ```
+   ```sql
+   INSERT INTO sensors (sensor_id, name, install_date) VALUES (2, 'S2', '2026-06-28');
+   INSERT INTO sensor_locations (sensor_id, x, y, valid_from, valid_to)
+       VALUES (2, 3.5, 5.7, <epoch_ms_now>, NULL);   -- epoch_ms_now = $(date +%s)000
+   ```
+   Locations are time-versioned: when you move a node, set `valid_to` on the old row and
+   insert a new one. Historical readings stay attributed to the correct position.
+
+Once flashed and registered, the node streams into `readings` and appears in the viewer.
+
+### Retrain the model on new data
+
+Readings accumulate in `dander.db` automatically while `dander-ingest` runs — there is
+nothing to import by hand. To retrain the field on the latest data:
+```bash
+source .venv/bin/activate
+jupyter lab          # open notebooks/skeleton.ipynb and run all cells
+```
+The notebook reads `build/dander.db`, trains the `(x, y, t) → 8-channel` field, and exports
+the deployable artifact to `models/`:
+```
+models/dander_field.onnx        the computation graph
+models/dander_field.onnx.data   the trained weights
+models/dander_field.norm.json   normalization constants
+```
+> These three files are a single unit — they must travel together and be re-exported as a
+> set. The C++ side loads all three; the `.onnx` alone (no weights, no constants) is useless.
+
+To include more sensors, change the `sensor_id` filter in the notebook's `load_samples(...)`.
+
+### View results
+
+- **Live readings** (truthful — one marker per sensor, blank where no sensor exists):
+  run `./dander-viewer` from `build/`.
+- **Reconstructed field** (model heatmap over the floor plan): `./build/render_field`.
+  Adjust the query time `t` and the channel index at the top of
+  `src/viewer/render_field.cpp` to inspect different moments and size bins.
+
+> With a single sensor the reconstructed field is not yet physically meaningful — it reflects
+> the model's own structure, not real spatial spread. It becomes meaningful once several
+> sensors are deployed simultaneously.
+
+---
+
 ## Projects
 
 ### Project A — Multi-Channel Sparse-to-Dense Field Reconstruction

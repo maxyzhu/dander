@@ -33,7 +33,7 @@ bool SqliteStore::open(const std::string& path) {
     sqlite3* db = nullptr;
     if (sqlite3_open(path.c_str(), &db) != SQLITE_OK) {
         fprintf(stderr, "SQLite Write open failed: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);   // sqlite 文档要求：即使 open 失败也要 close
+        this->close();
         return false;
     }
     db_ = db;
@@ -43,7 +43,7 @@ bool SqliteStore::open(const std::string& path) {
     if (sqlite3_exec(db, kSqlSchema, nullptr, nullptr, &errmsg) != SQLITE_OK) {
         fprintf(stderr, "schema failed: %s\n", errmsg);
         sqlite3_free(errmsg);
-        close();
+        this->close();
         return false;
     }
 
@@ -54,7 +54,7 @@ bool SqliteStore::open(const std::string& path) {
     sqlite3_stmt* stmt = nullptr;
     if (sqlite3_prepare_v2(db, kInsertSql, -1, &stmt, nullptr) != SQLITE_OK) {
         fprintf(stderr, "prepare failed: %s\n", sqlite3_errmsg(db));
-        close();
+        this->close();
         return false;
     }
     insert_stmt_ = stmt;

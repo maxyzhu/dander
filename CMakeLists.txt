@@ -13,6 +13,7 @@ add_compile_options(-Wall -Wextra -Wpedantic)
 
 find_package(SQLite3 REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(nlohmann_json REQUIRED)
 add_executable(dander-ingest 
     src/main.cpp
     src/storage/sqlite_store.cpp
@@ -45,3 +46,28 @@ enable_testing()
 add_test(NAME pms7003m_parse COMMAND test_pms7003m_parse)
 add_test(NAME byte_order     COMMAND test_byte_order)
 add_test(NAME udp_packet     COMMAND test_udp_packet)
+
+
+if(APPLE)
+    execute_process(COMMAND brew --prefix onnxruntime
+        OUTPUT_VARIABLE ONNXRUNTIME_PREFIX OUTPUT_STRIP_TRAILING_WHITESPACE)
+    list(APPEND CMAKE_PREFIX_PATH "${ONNXRUNTIME_PREFIX}")
+endif()
+find_package(onnxruntime REQUIRED)
+
+add_executable(ort_smoke src/inference/ort_smoke.cpp)
+target_compile_definitions(ort_smoke PRIVATE DANDER_PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
+target_link_libraries(ort_smoke PRIVATE 
+    onnxruntime::onnxruntime   
+)
+
+
+add_executable(render_field
+    src/viewer/render_field.cpp
+    src/inference/field_model.cpp)
+target_include_directories(render_field PRIVATE src)
+target_compile_definitions(render_field PRIVATE DANDER_PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
+target_link_libraries(render_field PRIVATE
+    ${OpenCV_LIBS}
+    onnxruntime::onnxruntime
+    nlohmann_json::nlohmann_json)

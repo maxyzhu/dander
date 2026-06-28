@@ -13,6 +13,12 @@ struct LatestReading {
     uint16_t cnt_03, cnt_05, cnt_10, cnt_25, cnt_50, cnt_100;
 };
 
+struct SensorLocation {
+    uint8_t sensor_id;
+    double x_m;
+    double y_m;
+};
+
 class SqliteReader {
 public:
     SqliteReader() = default;
@@ -26,9 +32,13 @@ public:
     // Get the latest reading for each sensor in the last window_ms
     std::vector<LatestReading> latest_per_sensor(uint64_t window_ms);
 
+    // Get the sensor location
+    std::vector<SensorLocation> active_locations();
+
 private:
     void* db_         = nullptr;
     void* select_stmt_ = nullptr;
+    void* location_stmt_ = nullptr;
 };
 
 } // namespace dander

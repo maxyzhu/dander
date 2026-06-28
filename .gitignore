@@ -13,3 +13,5 @@ examples/
 *.db
 *.db-wal
 *.db-shm
+# notebooks
+.ipynb_checkpoints/

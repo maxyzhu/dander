@@ -39,7 +39,7 @@ esp_err_t do_ota_check() {
         return ESP_FAIL;
     }
 
-    const esp_app_desc_t* cur_desc = esp_ota_get_description();
+    const esp_app_desc_t* cur_desc = esp_app_get_description();
     if (strcmp(new_desc.version, cur_desc->version) == 0) {
         ESP_LOGI(TAG, "No new firmware (%s), skipping", new_desc.version);
         esp_https_ota_abort(handle);
