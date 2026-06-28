@@ -1,6 +1,6 @@
 # Dander
-<img src="assets/scene.jpeg" width="45%">
-<img src="assets/output_sample1.jpeg" width="45%">
+<img src="assets/scene.jpeg" width="45%" style="display:inline-block">
+<img src="assets/output_sample1.jpeg" style="display:inline-block">
 
 > I have two cats — one light, one dark. I sneeze every day. Vacuuming doesn't help much.
 >
