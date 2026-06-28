@@ -2,11 +2,7 @@
 <table>
   <tr>
     <td><img src="assets/scene.jpeg" width="300"></td>
-    <td><img src="assets/output_sample1.jpeg" width="300"></td>
-  </tr>
-  <tr>
-    <td>正面</td>
-    <td>侧面</td>
+    <td><img src="assets/output_sample1.jpeg" width="500"></td>
   </tr>
 </table>
 > I have two cats — one light, one dark. I sneeze every day. Vacuuming doesn't help much.
